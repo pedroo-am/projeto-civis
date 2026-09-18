@@ -1,25 +1,15 @@
 import { useEffect, useMemo, useState } from 'react'
-import { MapPinned, Menu, Navigation, ShieldAlert, BellRing, Map, Search, House, Crosshair } from 'lucide-react'
+import { MapPinned, Map, Crosshair } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { MapView } from '../components/MapView'
 import { Button } from '../components/Button'
 import { BottomSheet } from '../components/BottomSheet'
-import { getCurrentUser, logout } from '../services/auth'
+import { getCurrentUser } from '../services/auth'
 import { DEFAULT_CENTER, reverseGeocode } from '../lib/maps'
 import { saveSOS } from '../services/sos'
 
-const menuItems = [
-  { label: 'Ajuda', path: '/ajuda', icon: ShieldAlert },
-  { label: 'Histórico de Clima', path: '/clima', icon: BellRing },
-  { label: 'Buscar Endereço', path: '/localizacao', icon: Search },
-  { label: 'Endereços Salvos', path: '/enderecos', icon: House },
-  { label: 'Adicionar Aviso', path: '/avisos/novo', icon: Map },
-  { label: 'Configurações', path: '/configuracoes', icon: Navigation },
-]
-
 export function HomePage() {
   const navigate = useNavigate()
-  const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [isSosOpen, setIsSosOpen] = useState(false)
   const [userLocation, setUserLocation] = useState<[number, number] | null>(null)
   const [address, setAddress] = useState('Carregando localização...')
@@ -58,11 +48,6 @@ export function HomePage() {
     navigate('/sos', { state: { request: newRequest } })
   }
 
-  const handleLogout = async () => {
-    await logout()
-    navigate('/login')
-  }
-
   return (
     <div className="h-screen bg-[#eef1f4] p-3 md:p-6">
       <div className="mx-auto h-[calc(100vh-1.5rem)] max-w-[420px] overflow-hidden rounded-[30px] bg-[#f5f5f5] shadow-[0_20px_50px_rgba(15,23,42,0.14)] md:max-w-[1040px] md:h-[calc(100vh-3rem)]">
@@ -71,15 +56,11 @@ export function HomePage() {
             <MapView center={mapCenter} marker={userLocation ?? mapCenter} className="h-full" height="100%" />
           </div>
 
-          <div className="pointer-events-none absolute inset-x-0 top-0 z-[200] flex items-center justify-between p-3">
+          <div className="pointer-events-none absolute inset-x-0 top-0 z-[200] flex items-center p-3">
             <div className="flex items-center gap-2 rounded-full bg-white/80 px-3 py-2 shadow-sm backdrop-blur-sm">
               <MapPinned size={16} className="text-[#0b1f2a]" />
               <span className="text-xs font-medium text-slate-800">Local atual</span>
             </div>
-            <button type="button" onClick={() => setIsMenuOpen(true)} className="pointer-events-auto flex items-center gap-2 rounded-full bg-white/80 px-3 py-2 shadow-sm backdrop-blur-sm">
-              <Menu size={16} />
-              <span className="text-sm font-medium">Menu</span>
-            </button>
           </div>
 
           <div className="absolute inset-x-0 bottom-0 z-[200] space-y-3 bg-white/95 px-4 pb-5 pt-4 shadow-[0_-12px_28px_rgba(0,0,0,0.06)] backdrop-blur-sm">
@@ -94,33 +75,11 @@ export function HomePage() {
             </div>
 
             <div className="grid grid-cols-2 gap-3">
-              <Button variant="secondary" onClick={() => setIsMenuOpen(true)} className="w-full">Menu</Button>
-              <Button onClick={() => setIsSosOpen(true)} className="w-full">SOS</Button>
+              <Button onClick={() => setIsSosOpen(true)} className="col-span-2 w-full">SOS</Button>
             </div>
           </div>
         </div>
       </div>
-
-      <BottomSheet open={isMenuOpen} onClose={() => setIsMenuOpen(false)} title="Menu">
-        <div className="grid grid-cols-2 gap-3">
-          {menuItems.map(({ label, path, icon: Icon }) => (
-            <button
-              key={label}
-              type="button"
-              onClick={() => {
-                setIsMenuOpen(false)
-                navigate(path)
-              }}
-              className="flex flex-col items-center gap-2 rounded-2xl border border-slate-200 bg-slate-50 p-3 text-sm font-medium text-slate-700"
-            >
-              <Icon size={18} />
-              <span className="text-center">{label}</span>
-            </button>
-          ))}
-        </div>
-        <Button onClick={() => setIsSosOpen(true)} className="mt-3 w-full">SOS</Button>
-        <Button variant="ghost" onClick={handleLogout} className="mt-2 w-full">Sair da conta</Button>
-      </BottomSheet>
 
       <BottomSheet open={isSosOpen} onClose={() => setIsSosOpen(false)} title="Emergência">
         <div className="space-y-4">
